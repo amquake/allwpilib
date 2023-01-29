@@ -20,7 +20,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.util.WPIUtilJNI;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * This class wraps {@link DifferentialDriveOdometry Differential Drive Odometry} to fuse
@@ -170,35 +169,6 @@ public class DifferentialDrivePoseEstimator {
    */
   public Pose2d getEstimatedPosition() {
     return m_poseEstimate;
-  }
-
-  /**
-   * Gets the estimated robot pose at timestampSeconds. If the buffer is empty, or the requested
-   * timestamp is outside the buffer history, an empty Optional is returned. The buffer history size
-   * used is 1.5 seconds.
-   *
-   * @param timestampSeconds The timestamp of the vision measurement in seconds. Note that if you
-   *     don't use your own time source by calling {@link
-   *     DifferentialDrivePoseEstimator#updateWithTime(double,Rotation2d,double,double)} then you
-   *     must use a timestamp with an epoch since FPGA startup (i.e., the epoch of this timestamp is
-   *     the same epoch as {@link edu.wpi.first.wpilibj.Timer#getFPGATimestamp()}.) This means that
-   *     you should use {@link edu.wpi.first.wpilibj.Timer#getFPGATimestamp()} as your time source
-   *     or sync the epochs.
-   * @return The estimated robot pose in meters at that timestamp or an empty Optional.
-   */
-  public Optional<Pose2d> getEstimatedPosition(double timestampSeconds) {
-    var bufferMap = m_poseBuffer.getInternalBuffer();
-    if (bufferMap.isEmpty()
-        || timestampSeconds < bufferMap.firstKey()
-        || timestampSeconds > bufferMap.lastKey()) {
-      return Optional.empty();
-    }
-    // Find the odometry delta between now and the given timestamp,
-    var delta =
-        new Transform2d(
-            m_odometry.getPoseMeters(), m_poseBuffer.getSample(timestampSeconds).get().poseMeters);
-    // and apply it to the current pose estimate.
-    return Optional.of(m_poseEstimate.transformBy(delta));
   }
 
   /**
